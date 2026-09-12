@@ -50,12 +50,6 @@ class PhysicsEntity():
                     self.collisions["left"] = True
                 self.pos[0] = entity_rect.x
 
-        # Need to make sure we update the player pos AND the rect pos
-        # Rects only work with INTEGERS, so nothing that relies on decimals
-        # can be used. This makes rects inneffective for game elements like player
-        # movement that often look better when sub-pixel movement is allowed.
-        # pygame-ce has FRects which do allow for floating poitn values, but DFP
-        # did not use them for this tut.
 
         self.pos[1] += frame_movement[1]
 
@@ -110,12 +104,12 @@ class PhysicsEntity():
 class Player(PhysicsEntity):
 
     MOVE_SPEED = 5
-    JUMP_HEIGHT = -3
-
+    JUMP_HEIGHT = -3.8
 
     def __init__(self, game, pos, size):
         super().__init__(game, "player", pos, size)
         self.air_time = 0
+        self.did_double_jump = False ## maybe we can use air_time >0
 
     def update(self, tilemap, movement=(0, 0)):
         super().update(tilemap, movement=movement)
@@ -123,6 +117,7 @@ class Player(PhysicsEntity):
         self.air_time += 1
         if self.collisions["down"]:
             self.air_time = 0
+            self.did_double_jump = False
 
         if self.air_time > 4:
             self.set_action("jump")
@@ -130,4 +125,24 @@ class Player(PhysicsEntity):
             self.set_action("run")
         else:
             self.set_action("idle")
- 
+
+    def jump(self, movement=(0,0)):
+        # What movement params do i need?
+        pass
+        # TODO: Make jump more responsive, 
+        # - add jump cutting 
+        # - make fall faster than rise
+
+
+
+    class Ruby():
+        # Primary collectible item.
+        def __init__(self):
+            pass
+
+
+
+    class Moon():
+        # Basically the reddening moon texture in the BG... idk if i need a class for this
+        def __init__(self):
+            pass
