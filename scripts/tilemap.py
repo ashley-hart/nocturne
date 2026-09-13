@@ -17,10 +17,10 @@ PLATFORM_TYPES = {
     'right': (11, 15),
     'final': (3, 13)
 }
+
 MAX_PLATFORM_HEIGHT = -20
 FINAL_AREA_HEIGHT = 10
-
-
+RUBY_CHANCE = 0.75
 
 class Tilemap:
     def __init__(self, game, tile_size=16, seed=42):
@@ -28,6 +28,7 @@ class Tilemap:
         self.tile_size = tile_size
         self.tilemap = {}
         self.offgrid_tiles = []
+        self.platforms = {} # {"y": 14, "type": 'left', "has_ruby": False}
 
         random.seed()
 
@@ -85,7 +86,6 @@ class Tilemap:
     def get_tile_loc(self, pos):
         return (int(pos[0] // self.tile_size), int(pos[1] // self.tile_size))
 
-# {"type": "large_decor", "variant": 1, "pos": [112.25, 86.0]},
     def level_init(self, surf, offset, seed=42):
 
         left_wall_x = (offset[0] // self.tile_size)
@@ -104,18 +104,6 @@ class Tilemap:
                     loc = str(x) + ';' + str(y)
                     self.tilemap[loc] = {'type': 'stone', 'variant': 1, 'pos': [x, y]}
 
-            # surf.blit(self.game.assets['stone'][1], (x * self.tile_size - offset[0], y * self.tile_size - offset[0]))
-
-        # self.render(surf, offset)
-
-    # Write platforms to the tilemap dict to be updated 
-    # on the next iteration. 
-    # MAX_HEIGHT_FROM_PLAYER = 4
-    # PLATFORM_TYPES = {
-    #     'left': (2, 5),
-    #     'middle': (6, 10),
-    #     'right': (11, 14),
-    # }
     possible_platform_min = 4 # y-tile coordinate for minimum possible tile position.
 
     def spawn_platforms(self, player_pos, surf , offset=(0,0)):
@@ -146,30 +134,77 @@ class Tilemap:
                 self.create_platform(curr_p_type, y)
                 y = self.get_platform_height(y)
                 p_last_spawned = curr_p_type
+
             # No platforms in middle can spawn under the final area.
-            elif y < (MAX_PLATFORM_HEIGHT - FINAL_AREA_HEIGHT + 2): 
+            elif y < (MAX_PLATFORM_HEIGHT - FINAL_AREA_HEIGHT + 4): 
                 curr_p_type = random.choice(['left', 'right'])
                 self.create_platform(curr_p_type, y)
                 y = self.get_platform_height(y)
 
-            print("Spawning NEXT platform at y =", y)
-
         self.create_platform('final', y)
-        print("Spawned final platform at y =", y)
+        ed_pos = self.get_platform_midpoint('final', y)
+        ed_pos = (ed_pos[0] - (self.tile_size * 1), ed_pos[1] - (self.tile_size * 2))
+        self.game.zones.append(ExitDoor(ed_pos))
+
 
     def create_platform(self, platform_type, y, has_item=False, has_enemy=False):
         for x in range(PLATFORM_TYPES[platform_type][0], PLATFORM_TYPES[platform_type][1]):
             loc = str(x) + ';' + str(y)
-            # print(loc)
             self.tilemap[loc] = {'type': 'stone', 'variant': 1, 'pos': [x, y]}
+
+        # Decide on if this platform gets a ruby.
+        if platform_type != 'final' and random.random() < RUBY_CHANCE:
+            self.spawn_ruby(platform_type, y)
+            self.platforms[y] = {'p_type': platform_type, 'has_ruby': True, 'has_enemy': False}
+        else: 
+            self.platforms[y] = {'p_type': platform_type, 'has_ruby': False, 'has_enemy': False}
 
 
     def get_platform_height(self, last_y=17):
+        # print("Spawning NEXT platform at y =", y)
         return last_y - random.randint(2, MAX_HEIGHT_FROM_PLAYER + 1)
 
     def spawn_final_area(self, y):
+        # TODO: Add rect for game_over event.
         pass
 
+    def spawn_ruby(self, platform_type, y):
+        self.game.rubies.append(Ruby(self.get_platform_midpoint(platform_type, y)))
+
+    def get_platform_midpoint(self, platform_type, platform_y):
+        platform_tile_range = PLATFORM_TYPES[platform_type]
+        # Convert tile numbers to world coords.
+        center_offset = 8
+        x1 = (platform_tile_range[0] * self.tile_size) - center_offset
+        x2 = (platform_tile_range[1] * self.tile_size) - center_offset
+        y1 = y2 = ((platform_y - 1) * self.tile_size)
+        return  (x1 + x2) // 2, (y1 + y2) // 2
+
+
 class Ruby():
-    def __init__(self):
-        self.rect = pygame.Rect()
+    def __init__(self, pos, size=16):
+        self.pos = pos
+        self.size = size
+        self.rect = pygame.Rect((self.pos[0], self.pos[1]), (self.size, self.size))
+        self.image = None # using a red rect for now
+
+    def render(self, surf, offset):
+        pygame.draw.rect(surf, (255, 0, 0), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
+
+    def check_collisions(self, rect):
+        return self.rect.colliderect(rect)
+
+
+
+class ExitDoor():
+    def __init__(self, pos, size=48):
+        self.pos = pos
+        self.size = size
+        self.rect = pygame.Rect((self.pos[0], self.pos[1]), (self.size, self.size))
+        self.image = None # using a red rect for now
+
+    def render(self, surf, offset):
+        pygame.draw.rect(surf, (255, 0, 255), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
+
+    def check_collisions(self, rect):
+        return self.rect.colliderect(rect)

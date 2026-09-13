@@ -1,7 +1,7 @@
 import pygame 
 import sys
 from scripts.entities import Player
-from scripts.tilemap import Tilemap
+from scripts.tilemap import Tilemap, Ruby
 from scripts.utils import load_image, load_images, Animation
 from pprint import pprint
 
@@ -26,6 +26,7 @@ class Game:
             'stone': load_images('tiles/stone'),
             'player': load_image('entities/player.png'),
             'background': load_image('background.png'),
+            'background_flipped': load_image('background_flipped.png'),
             'clouds': load_images('clouds'),
             'player/idle': Animation(load_images('entities/player/idle'), img_dur=3),
             'player/run': Animation(load_images('entities/player/run'), img_dur=2),
@@ -34,8 +35,23 @@ class Game:
             'player/jump': Animation(load_images('entities/player/wall_slide')),
         }
 
+        self.player = Player(self, pos=(self.display.get_width()// 2 + 4, 272), size=(8, 15))
+        self.zones = []
+
+        self.rubies = []
         self.tilemap = Tilemap(self, tile_size=16)
+        
         self.tilemap.level_init(self.display, (0,0))
+        self.tilemap.spawn_platforms(self.player.pos, self.display)
+        self.rubies.append(Ruby((100, 272)))
+        pprint(self.tilemap.platforms)
+
+        # TODO: Write level validation code, 
+        # if level score req < num rubies on platforms - (difficulty threshold int),
+        # add more rubies to a as randomly selected platforms that are needed
+        # some/several should still be empty.
+        # TODO: Refactor -> Move all level set up code into a function/Level class
+        # TODO: Determine what level parameters I need.
         # pprint(self.tilemap.tilemap)
         # try:
             # self.tilemap.load('map.json')
@@ -43,24 +59,21 @@ class Game:
         # except FileNotFoundError:
         #     print("[ERROR]: Map data not found.")
 
-        self.player = Player(self, pos=(self.display.get_width()// 2 + 4, 272), size=(8, 15))
         # self.player = Player(self, pos=(self.display.get_width()// 2, self.display.get_height() * 0.6), size=(8, 15))
         # self.player = Player(self, pos=(0, 0), size=(8, 15))
-        self.tilemap.spawn_platforms(self.player.pos, self.display)
 
         self.scroll = [0, 0] # camera's offset from OG world coords 
 
     def run(self):
         while True:
             self.display.fill((0, 0, 0))
-            self.display.blit(self.assets['background'], (0,0))
+            self.display.blit(self.assets['background_flipped'], (0,0))
 
             render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
             # render_scroll = (0,0)
 
             # Update player
             self.player.update(self.tilemap, ((self.movement[1] - self.movement[0]), 0))
-            self.player.render(self.display, render_scroll)
 
             # Update camera
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 5
@@ -70,6 +83,30 @@ class Game:
             self.scroll[1] = min(self.scroll[1], 0) # Vertical scrolling is primary direction
 
             self.tilemap.render(self.display, render_scroll)
+
+            player_rect = self.player.rect()
+            # Update game-event zones / trigger areas
+            for z in self.zones:
+                if z.check_collisions(player_rect):
+                    print("[WIN] Player reached exit!")
+                    self.player.player_win()
+                z.render(self.display, render_scroll)
+
+            # Update rubies.
+            # Look into ways to improve this later.
+            remove_rubies = []
+            for r in self.rubies:
+                if r.check_collisions(player_rect):
+                    remove_rubies.append(r)
+                    self.player.update_score(10)
+                r.render(self.display, render_scroll)
+
+            if remove_rubies:
+                for r in remove_rubies:
+                    self.rubies.remove(r)
+
+            # NOW render the player so they on top
+            self.player.render(self.display, render_scroll)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -113,7 +150,6 @@ class Game:
 
             scaled_width = 720
             scaled_height = 960
-
 
             scaled_display = pygame.transform.scale(self.display, (scaled_width, scaled_height))
             # scaled_display = pygame.transform.scale(self.display, (scaled_width, scaled_height))

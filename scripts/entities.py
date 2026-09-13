@@ -18,6 +18,8 @@ class PhysicsEntity():
         )  # accounts for padding in images. Typically should be changed per entity.
         self.flip = False  # flipping images
         self.set_action("idle")
+
+        self.collectbles = []
     
 
     def update(self, tilemap, movement=(0, 0)):
@@ -110,6 +112,7 @@ class Player(PhysicsEntity):
         super().__init__(game, "player", pos, size)
         self.air_time = 0
         self.did_double_jump = False ## maybe we can use air_time >0
+        self.score = 0
 
     def update(self, tilemap, movement=(0, 0)):
         super().update(tilemap, movement=movement)
@@ -133,12 +136,17 @@ class Player(PhysicsEntity):
         # - add jump cutting 
         # - make fall faster than rise
 
+    def update_score(self, value):
+        self.score += value
+        print(f"Updated Player Score: {self.score}")
+
+    def player_win(self):
+        print(f"DO PLAYER WIN EVENT")
+
+    def player_death(self):
+        print(f"DO PLAYER DEATH EVENT")
 
 
-    class Ruby():
-        # Primary collectible item.
-        def __init__(self):
-            pass
 
 
 
