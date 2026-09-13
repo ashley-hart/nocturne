@@ -11,6 +11,7 @@ class Game:
     MARGIN_SIZE = 70
     def __init__(self):
         pygame.init()
+        pygame.font.init()
         self.screen = pygame.display.set_mode((1280, 960))
         self.display = pygame.Surface((240, 320))
         # self.display = pygame.Surface((320, 240))
@@ -35,6 +36,8 @@ class Game:
             'player/jump': Animation(load_images('entities/player/wall_slide')),
         }
 
+        self.current_level = 1
+
         self.player = Player(self, pos=(self.display.get_width()// 2 + 4, 272), size=(8, 15))
         self.zones = []
 
@@ -45,6 +48,7 @@ class Game:
         self.tilemap.spawn_platforms(self.player.pos, self.display)
         self.rubies.append(Ruby((100, 272)))
         pprint(self.tilemap.platforms)
+
 
         # TODO: Write level validation code, 
         # if level score req < num rubies on platforms - (difficulty threshold int),
@@ -62,12 +66,45 @@ class Game:
         # self.player = Player(self, pos=(self.display.get_width()// 2, self.display.get_height() * 0.6), size=(8, 15))
         # self.player = Player(self, pos=(0, 0), size=(8, 15))
 
+        self.font = pygame.font.Font(None, 36)
+        self.f_surf = self.font.render(f"PLAYER SCORE: {self.player.score}", False, (255, 255, 255))
+        self.screen.blit(self.f_surf , self.f_surf .get_rect(topleft=(20,20)))
+        self.f_surf = self.font.render("GOAL: 100", False, (255, 255, 255))
+        self.screen.blit(self.f_surf , self.f_surf .get_rect(topleft=(20, 50)))
+
         self.scroll = [0, 0] # camera's offset from OG world coords 
+
+    def advance_level(self):
+        print(f"Advancing to Level {self.current_level + 1}")
+        # self.current_level += 1
+
+    # TODO: Mini Jam 219
+    # MVP
+    # - make jump/movement feel good
+    # - add roof to tower
+    # - add score-based win condition
+    # - add level parameters
+    # - add level transition (reset/regenerate tilemap + player)
+
+    # Reliability
+    # - add generation validation
+    # - export tilemaps to JSON
+    # - make sure exported tilemaps are loadable
+
+    # Polish
+    # - add art assets
+    # - add main menu
+    # - add simple level transition/cutscene if time allows
+
 
     def run(self):
         while True:
             self.display.fill((0, 0, 0))
             self.display.blit(self.assets['background_flipped'], (0,0))
+
+            # UI region fill
+            self.screen.fill((0,0,0), pygame.Rect(0, 0, 290, 100))
+            # pygame.draw.rect(self.screen, (200, 248, 135), pygame.Rect(0, 0, 290, 100))
 
             render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
             # render_scroll = (0,0)
@@ -79,6 +116,7 @@ class Game:
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 5
             self.scroll[1] += (self.player.rect().centery - self.display.get_height() / 1.25  - self.scroll[1]) / 5
 
+            # TODO: Add upper bound to vertical scrolling based on level height
             self.scroll[0] = min(max(self.scroll[0], 0), 16)
             self.scroll[1] = min(self.scroll[1], 0) # Vertical scrolling is primary direction
 
@@ -90,6 +128,7 @@ class Game:
                 if z.check_collisions(player_rect):
                     print("[WIN] Player reached exit!")
                     self.player.player_win()
+                    self.advance_level()
                 z.render(self.display, render_scroll)
 
             # Update rubies.
@@ -107,6 +146,12 @@ class Game:
 
             # NOW render the player so they on top
             self.player.render(self.display, render_scroll)
+
+            # Update UI elements
+            score_surf = self.font.render(f"PLAYER SCORE: {self.player.score}", False, (255, 255, 255))
+            self.screen.blit(score_surf, (20,20))
+            goal_surf = self.font.render("GOAL: 100", False, (255, 255, 255))
+            self.screen.blit(goal_surf, (20, 50))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

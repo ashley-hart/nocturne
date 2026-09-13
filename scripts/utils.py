@@ -3,6 +3,20 @@ import pygame
 
 BASE_IMG_PATH = "data/images/"
 
+COLORS = {
+    'deep_black': '#1D1616',
+    'red': '#8E1616',
+    'pale_red': '#D84040',
+    'off_white': '#EEEEEE'
+}
+
+# COLORS = {
+#     'deep_black': '#151515',
+#     'cherry': '#A91D3A',
+#     'strawberry': '#C73659',
+#     'off_white': '#EEEEEE'
+# }
+
 def load_image(path, colorkey="black"):
     img = pygame.image.load(BASE_IMG_PATH + path).convert()
     img.set_colorkey(colorkey) # automatically key out the black
