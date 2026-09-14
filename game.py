@@ -56,13 +56,6 @@ class Game:
         self.tilemap = Tilemap(self, tile_size=16)
         self.generate_level(self.level)
 
-        # pprint(self.tilemap.tilemap)
-        # try:
-            # self.tilemap.load('map.json')
-        #     self.tilemap.load('test.json')
-        # except FileNotFoundError:
-        #     print("[ERROR]: Map data not found.")
-
         self.font = pygame.font.Font(None, 36)
         self.scroll = [0, 0] # camera's offset from OG world coords 
 
@@ -109,10 +102,6 @@ class Game:
         self.zones.clear()
         self.tilemap.tilemap.clear()
         self.tilemap.tilemap = {}
-
-        # clearing this to give the eventual 
-        # validation code a clean structure to 
-        # work with.
         self.tilemap.platforms.clear()
         self.tilemap.platforms = {}
 
@@ -135,27 +124,9 @@ class Game:
         self.movement = [False, False, False, False]
 
         # For testing purposes
-        # ! REMOVE BEFORE SUBMISSION
-        self.player.score = 100
+        # # ! REMOVE BEFORE SUBMISSION
+        # self.player.score = 100
 
-
-    # TODO: Mini Jam 219
-    # MVP
-    # - make jump/movement feel good [DONE]
-    # - add score-based win condition (time limit) [DONE] --> needs to communicate with Game class.
-    # - add roof to tower [DONE]
-    # - add level parameters height, ruby odds, time limit(level 1, 2, 3 --> local dict for now) [DONE]
-    # - add level transition (reset/regenerate tilemap + player) [DONE - not polished]
-
-    # Reliability
-    # - add generation validation
-    # - export tilemaps to JSON
-    # - make sure exported tilemaps are loadable
-
-    # Polish
-    # - add art assets
-    # - add main menu
-    # - add simple level transition/cutscene if time allows
 
     def run(self):
         while True:
@@ -237,7 +208,8 @@ class Game:
                         self.movement[0] = True
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = True
-                    if event.key == pygame.K_UP:
+                    # if event.key == pygame.K_UP:
+                    if event.key == pygame.K_SPACE:
                         self.player.jump()
                         # if self.player.air_time > 0 and self.player.did_double_jump == False:
                         #     self.player.did_double_jump = True
@@ -249,7 +221,8 @@ class Game:
                         self.movement[0] = False
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = False
-                    if event.key == pygame.K_UP:
+                    # if event.key == pygame.K_UP:
+                    if event.key == pygame.K_SPACE:
                         self.movement[2] = False
                         self.player.release_jump()
                     if event.key == pygame.K_DOWN:

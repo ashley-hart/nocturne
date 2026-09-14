@@ -84,8 +84,8 @@ class PhysicsEntity():
         self.animation.update()
 
     def render(self, surf, offset):
-        # Debug rect
-        pygame.draw.rect(surf, (47, 57, 169), (int(self.rect().x - offset[0]), int(self.rect().y - offset[1]), self.size[0], self.size[1]))
+        # # Debug rect
+        # pygame.draw.rect(surf, (47, 57, 169), (int(self.rect().x - offset[0]), int(self.rect().y - offset[1]), self.size[0], self.size[1]))
         surf.blit(
             pygame.transform.flip(self.animation.img(), self.flip, False),
             (
