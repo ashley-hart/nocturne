@@ -13,8 +13,8 @@ class PhysicsEntity():
 
         self.action = ""
         self.anim_offset = (
-            -3,
-            -3,
+            -4,
+            -1,
         )  # accounts for padding in images. Typically should be changed per entity.
         self.flip = False  # flipping images
         self.set_action("idle")
@@ -62,6 +62,7 @@ class PhysicsEntity():
                 if frame_movement[1] > 0:  # moving down
                     entity_rect.bottom = rect.top
                     self.collisions["down"] = True
+                    # print("IS GROUNDED = {True}")
                 elif frame_movement[1] < 0:
                     entity_rect.top = rect.bottom
                     self.collisions["up"] = True
@@ -83,6 +84,8 @@ class PhysicsEntity():
         self.animation.update()
 
     def render(self, surf, offset):
+        # Debug rect
+        pygame.draw.rect(surf, (47, 57, 169), (int(self.rect().x - offset[0]), int(self.rect().y - offset[1]), self.size[0], self.size[1]))
         surf.blit(
             pygame.transform.flip(self.animation.img(), self.flip, False),
             (
@@ -90,8 +93,10 @@ class PhysicsEntity():
             self.pos[1] - offset[1] + self.anim_offset[1]
             ),
         )
-        # Debug rect
-        # pygame.draw.rect(surf, (47, 57, 169), (int(self.rect().x - offset[0]), int(self.rect().y - offset[1]), self.size[0], self.size[1]))
+
+    def set_pos(self, x, y):
+        self.pos[0] = x
+        self.pos[1] = y
 
     def rect(self):
         return pygame.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
@@ -104,53 +109,85 @@ class PhysicsEntity():
 
 # Using inheritance to give specific qualitites to our Player
 class Player(PhysicsEntity):
-
+    GRAVITY = 2
+    FALL_GRAVITY = 4
     MOVE_SPEED = 5
+    NUM_JUMPS = 10 # 2
     JUMP_HEIGHT = -3.8
 
     def __init__(self, game, pos, size):
         super().__init__(game, "player", pos, size)
         self.air_time = 0
-        self.did_double_jump = False ## maybe we can use air_time >0
+        self.jumps = self.NUM_JUMPS
         self.score = 0
 
     def update(self, tilemap, movement=(0, 0)):
         super().update(tilemap, movement=movement)
 
-        self.air_time += 1
+        # print(
+        #     "down", self.collisions['down'],
+        #     "air_time:", self.air_time,
+        #     "velocity_y:", self.velocity[1],
+        #     "pos_y:", self.pos[1]
+        # )
+        # print(self.is_on_ground())
+        # TODO: is_grounded()
+        # Investigate what it would take to persistently detect 
+        # if the player is standing on a ground tile. I think I
+        # would need rects that function as raycasts/non-physics 
+        # colliders with other tiles to help the player respond 
+        # to the env.
         if self.collisions["down"]:
             self.air_time = 0
-            self.did_double_jump = False
+            self.jumps = self.NUM_JUMPS
+        else:
+            self.air_time += 1
+            if self.velocity[1] > 0:
+                self.velocity[1] += (self.velocity[1] * self.get_gravity()) / 60
 
-        if self.air_time > 4:
+        # Hnadle Animations
+        if self.air_time > 4 and self.velocity[1] < 0:
             self.set_action("jump")
+        elif self.air_time > 4 and self.velocity[1] < 0:
+            self.set_action["fall"]
         elif movement[0] != 0:
             self.set_action("run")
         else:
             self.set_action("idle")
 
-    def jump(self, movement=(0,0)):
-        # What movement params do i need?
-        pass
-        # TODO: Make jump more responsive, 
-        # - add jump cutting 
-        # - make fall faster than rise
+    def is_on_ground(self):
+        return self.collisions['down'] 
+
+    def get_gravity(self):
+        if self.velocity[1] < 0:
+            return self.GRAVITY
+        return self.FALL_GRAVITY
+
+    # - if on ground, permit a jump
+    # - if not on ground, but jump key is pressed, and we havent dbl jumped yet, do double jump
+    # - if the double jump flag is true, no more jumps are allowed
+    # - when the player contacts the ground again, restore dbl jump flag
+    def jump(self):
+        if self.jumps:
+            self.jumps -= 1
+            self.velocity[1] = self.JUMP_HEIGHT
+            self.air_time = 5 # set to trigger jump animation (thresholf for which is 4)
+            return
+
+    def release_jump(self):
+        # If still rising, then do jump cut
+        if self.velocity[1] < 0:
+            self.velocity[1] = self.velocity[1] / 4 # 4 = jump cut factor
+            # self.set_action('fall')
 
     def update_score(self, value):
         self.score += value
         print(f"Updated Player Score: {self.score}")
 
     def player_win(self):
-        print(f"DO PLAYER WIN EVENT")
+        print("DO PLAYER WIN EVENT")
 
     def player_death(self):
-        print(f"DO PLAYER DEATH EVENT")
+        print("DO PLAYER DEATH EVENT")
 
 
-
-
-
-    class Moon():
-        # Basically the reddening moon texture in the BG... idk if i need a class for this
-        def __init__(self):
-            pass

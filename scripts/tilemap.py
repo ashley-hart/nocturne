@@ -86,7 +86,7 @@ class Tilemap:
     def get_tile_loc(self, pos):
         return (int(pos[0] // self.tile_size), int(pos[1] // self.tile_size))
 
-    def level_init(self, surf, offset, seed=42):
+    def level_init(self, surf, lvl_height, offset, seed=42):
 
         left_wall_x = (offset[0] // self.tile_size)
         # left_wall_x = 5
@@ -99,14 +99,26 @@ class Tilemap:
                 self.tilemap[loc] = {'type': 'stone', 'variant': 1, 'pos': [x, y]}
 
         # Walls
-        for y in range(MAX_PLATFORM_HEIGHT, 20):
+        for y in range(lvl_height, 20):
             for x in [left_wall_x, left_wall_x - 1, right_wall_x + 1, right_wall_x]:
                     loc = str(x) + ';' + str(y)
                     self.tilemap[loc] = {'type': 'stone', 'variant': 1, 'pos': [x, y]}
 
+        # Ceiling
+        for x in range((offset[0] // self.tile_size) - 1, (offset[0] + surf.get_width()) // self.tile_size + 1):
+            for y in range(lvl_height-20, lvl_height):
+                loc = str(x) + ';' + str(y)
+                self.tilemap[loc] = {'type': 'stone', 'variant': 1, 'pos': [x, y]}
+
     possible_platform_min = 4 # y-tile coordinate for minimum possible tile position.
 
-    def spawn_platforms(self, player_pos, surf , offset=(0,0)):
+    # TODO: Refactor -> Move all level set up code into a function/Level class
+    # TODO: Determine what level parameters I need.
+    # TODO: Write level validation code
+    # if level score req < num rubies on platforms - (difficulty threshold int),
+    # add more rubies to a as randomly selected platforms that are needed
+    # some/several should still be empty
+    def generate_level(self, player_pos, surf, lvl_height, offset=(0,0)):
         player_y = int(player_pos[1] // self.tile_size)
         print("player_y = ", player_y)
 
@@ -120,8 +132,8 @@ class Tilemap:
         p_types.remove('final')
         p_last_spawned = None
 
-        while y > MAX_PLATFORM_HEIGHT + FINAL_AREA_HEIGHT:
-            if y > (MAX_PLATFORM_HEIGHT - FINAL_AREA_HEIGHT + 4):
+        while y > lvl_height + FINAL_AREA_HEIGHT:
+            if y > (lvl_height - FINAL_AREA_HEIGHT + 4):
                 if p_last_spawned:
                     if p_last_spawned == 'left':
                         p_types = ['middle', 'right']
@@ -144,7 +156,7 @@ class Tilemap:
         self.create_platform('final', y)
         ed_pos = self.get_platform_midpoint('final', y)
         ed_pos = (ed_pos[0] - (self.tile_size * 1), ed_pos[1] - (self.tile_size * 2))
-        self.game.zones.append(ExitDoor(ed_pos))
+        self.game.zones.append(ExitDoor(self.game, ed_pos))
 
 
     def create_platform(self, platform_type, y, has_item=False, has_enemy=False):
@@ -169,7 +181,7 @@ class Tilemap:
         pass
 
     def spawn_ruby(self, platform_type, y):
-        self.game.rubies.append(Ruby(self.get_platform_midpoint(platform_type, y)))
+        self.game.rubies.append(Ruby(self.game, self.get_platform_midpoint(platform_type, y)))
 
     def get_platform_midpoint(self, platform_type, platform_y):
         platform_tile_range = PLATFORM_TYPES[platform_type]
@@ -182,28 +194,31 @@ class Tilemap:
 
 
 class Ruby():
-    def __init__(self, pos, size=16):
+    def __init__(self, game, pos, size=16):
+        self.game = game
         self.pos = pos
         self.size = size
         self.rect = pygame.Rect((self.pos[0], self.pos[1]), (self.size, self.size))
         self.image = None # using a red rect for now
 
     def render(self, surf, offset):
-        pygame.draw.rect(surf, (255, 0, 0), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
+        surf.blit(self.game.assets['ruby'], (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
+        # pygame.draw.rect(surf, (255, 0, 0), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
 
     def check_collisions(self, rect):
         return self.rect.colliderect(rect)
 
 
-
 class ExitDoor():
-    def __init__(self, pos, size=48):
+    def __init__(self, game, pos, size=48):
+        self.game = game
         self.pos = pos
         self.size = size
         self.rect = pygame.Rect((self.pos[0], self.pos[1]), (self.size, self.size))
         self.image = None # using a red rect for now
 
     def render(self, surf, offset):
+        # surf.blit(self.game.get)
         pygame.draw.rect(surf, (255, 0, 255), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
 
     def check_collisions(self, rect):
