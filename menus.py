@@ -11,6 +11,7 @@ class MainMenu:
         self.display = pygame.Surface((240, 320))
 
         pygame.display.set_caption("Mini Jam - Nocturne")
+        self.logo_img = load_image('my_art/ui/logo_sprite.png')
 
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
@@ -45,8 +46,9 @@ class MainMenu:
         while True:
             self.screen.fill((0, 0, 0))
             self.display.blit(self.assets['background'], (0,0))
+            self.display.blit(self.logo_img, (10,40))
             # self.draw_text('Ruby Moon', self.font, (255, 255, 255), self.display, self.display.get_width()//4 - 7, 20)
-            self.draw_text('Bloodgems', self.font, (255, 255, 255), self.display, self.display.get_width()//4 - 7, 20)
+            # self.draw_text('Bloodgems', self.font, (255, 255, 255), self.display, self.display.get_width()//4 - 7, 20)
 
 
             mx, my = pygame.mouse.get_pos()
@@ -150,7 +152,7 @@ class WinScreen:
             display_y = my / scale_y
 
             if self.mode == "win":
-                self.draw_text('Win Screen', self.font, (255, 255, 255), self.display, self.display.get_width()//4 - 7, 20)
+                self.draw_text('You Win!', self.font, (255, 255, 255), self.display, self.display.get_width()//4 + 14, 20)
             if self.mode == "lose":
                 self.draw_text('Game Over', self.font, (255, 255, 255), self.display, self.display.get_width()//4 - 7, 20)
 
@@ -197,5 +199,6 @@ class WinScreen:
             self.screen.blit(scaled_display, ((self.screen.get_width() - self.scaled_width) // 2, 0))  
             pygame.display.flip()
             self.clock.tick(60)
-MainMenu().run()
-# WinScreen().run()
+            
+# MainMenu().run()
+# WinScreen(mode="lose").run()

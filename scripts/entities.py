@@ -112,8 +112,8 @@ class Player(PhysicsEntity):
     GRAVITY = 2
     FALL_GRAVITY = 4
     MOVE_SPEED = 5
-    NUM_JUMPS = 10 # 2
-    JUMP_HEIGHT = -3.8
+    NUM_JUMPS = 3
+    JUMP_HEIGHT = -3.9
 
     def __init__(self, game, pos, size):
         super().__init__(game, "player", pos, size)

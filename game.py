@@ -29,12 +29,11 @@ class Game:
             'stone': load_images('tiles/stone'),
             'player': load_image('entities/player.png'),
             'ruby': load_image('my_art/ruby/ruby.png'),
+            'exit_door': load_image('my_art/decor/castle_door.png'),
             # 'background': load_image('background.png'),
             'background': load_image('my_art/backgrounds/background.png'),
             'clouds': load_images('clouds'),
-            # 'player/idle': Animation(load_images('entities/player/idle'), img_dur=3),
-            'player/run': Animation(load_images('entities/player/run'), img_dur=2),
-            # 'player/jump': Animation(load_images('entities/player/jump')),
+            'player/run': Animation(load_images('my_art/vampy/run'), img_dur=2),
             'player/idle': Animation(load_images('my_art/vampy/idle'), img_dur=5, loop=True),
             'player/jump': Animation(load_images('my_art/vampy/jump')),
             'player/fall': Animation(load_images('my_art/vampy/fall')),
@@ -43,9 +42,9 @@ class Game:
         self.player = Player(self, pos=(self.display.get_width()// 2 + 4, 272), size=(8, 15))
 
         self.level_data = {
-            1: {"time_limit": 60, "req_score": 50, "level_height": -40, 'ruby_chance': 0.8},
-            2: {"time_limit": 60, "req_score": 70, "level_height": -60, 'ruby_chance': 0.75},
-            3: {"time_limit": 60, "req_score": 100, "level_height": -80, 'ruby_chance': 0.7},
+            1: {"time_limit": 60, "req_score": 60, "level_height": -40, 'ruby_chance': 0.8},
+            2: {"time_limit": 60, "req_score": 80, "level_height": -60, 'ruby_chance': 0.75},
+            3: {"time_limit": 60, "req_score": 120, "level_height": -80, 'ruby_chance': 0.7},
         }
         self.level = 1
         self.level_timer = float(self.level_data[1]['time_limit'])
@@ -204,9 +203,9 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
+                    if event.key in [pygame.K_LEFT, pygame.K_a]:
                         self.movement[0] = True
-                    if event.key == pygame.K_RIGHT:
+                    if event.key in [pygame.K_RIGHT, pygame.K_d]:
                         self.movement[1] = True
                     # if event.key == pygame.K_UP:
                     if event.key == pygame.K_SPACE:
@@ -217,9 +216,9 @@ class Game:
                         # self.movement[3] = True
                         pass
                 if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_LEFT:
+                    if event.key in [pygame.K_LEFT, pygame.K_a]:
                         self.movement[0] = False
-                    if event.key == pygame.K_RIGHT:
+                    if event.key in [pygame.K_RIGHT, pygame.K_d]:
                         self.movement[1] = False
                     # if event.key == pygame.K_UP:
                     if event.key == pygame.K_SPACE:

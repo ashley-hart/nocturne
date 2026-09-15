@@ -219,7 +219,8 @@ class ExitDoor():
 
     def render(self, surf, offset):
         # surf.blit(self.game.get)
-        pygame.draw.rect(surf, (255, 0, 255), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
+        surf.blit(self.game.assets['exit_door'], (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
+        # pygame.draw.rect(surf, (255, 0, 255), (self.rect.x - offset[0], self.rect.y - offset[1], self.size, self.size))
 
     def check_collisions(self, rect):
         return self.rect.colliderect(rect)
