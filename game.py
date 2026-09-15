@@ -3,7 +3,7 @@ import sys
 from scripts.entities import Player
 from menus import MainMenu, WinScreen
 from scripts.tilemap import Tilemap, Ruby
-from scripts.utils import load_image, load_images, Animation
+from scripts.utils import load_image, load_images, resource_path, Animation
 from pprint import pprint
 
 # There is an issue with the timer not beign at the amax limit when the level 
@@ -17,7 +17,7 @@ class Game:
         pygame.font.init()
         self.screen = pygame.display.set_mode((1280, 960))
         self.display = pygame.Surface((240, 320))
-        pygame.display.set_caption("Mini Jam - Nocturne")
+        pygame.display.set_caption("Bloodgems")
         self.clock = pygame.time.Clock()
 
         self.movement = [False, False, False, False]
@@ -38,6 +38,14 @@ class Game:
             'player/jump': Animation(load_images('my_art/vampy/jump')),
             'player/fall': Animation(load_images('my_art/vampy/fall')),
         }
+
+        self.sfx = {
+            'jump': pygame.mixer.Sound(resource_path('data/sfx/jump.wav')),
+            'ruby_get': pygame.mixer.Sound(resource_path('data/item_pickup.wav'))
+        }
+
+        self.sfx['jump'].set_volume(0.6)
+        self.sfx['ruby_get'].set_volume(0.4)
 
         self.player = Player(self, pos=(self.display.get_width()// 2 + 4, 272), size=(8, 15))
 
@@ -128,6 +136,10 @@ class Game:
 
 
     def run(self):
+        pygame.mixer.music.load(resource_path('data/music.wav'))
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1) # -1 loops for ever
+
         while True:
             self.display.fill((0, 0, 0))
             self.display.blit(self.assets['background'], (0,0))
@@ -178,6 +190,7 @@ class Game:
             for r in self.rubies:
                 if r.check_collisions(player_rect):
                     remove_rubies.append(r)
+                    self.sfx['ruby_get'].play()
                     self.player.update_score(10)
                 r.render(self.display, render_scroll)
 
@@ -191,7 +204,7 @@ class Game:
             # Update UI elements
             score_surf = self.font.render(f"PLAYER SCORE: {self.player.score}", False, (255, 255, 255))
             self.screen.blit(score_surf, (20,20))
-            goal_surf = self.font.render("GOAL: 100", False, (255, 255, 255))
+            goal_surf = self.font.render(f"GOAL: {self.level_data[self.level]['req_score']}", False, (255, 255, 255))
             self.screen.blit(goal_surf, (20, 50))
             time_surf = self.font.render(f"TIME: {int(self.level_timer)}", False, (255, 255, 255))
             self.screen.blit(time_surf, (20,80))
@@ -236,7 +249,9 @@ class Game:
             dt = self.clock.tick(60) / 1000
             self.level_timer -= dt
 
-Game().run()
+retval = MainMenu().run()
+if retval == 'play':
+    Game().run()
 
 # self.screen.blit(pygame.transform.scale(self.display, (self.screen.get_height(), self.screen.get_width() - 20), (0, 0)))   
 # # Scale down the width by 20 pixels total

@@ -169,6 +169,7 @@ class Player(PhysicsEntity):
     # - when the player contacts the ground again, restore dbl jump flag
     def jump(self):
         if self.jumps:
+            self.game.sfx['jump'].play()
             self.jumps -= 1
             self.velocity[1] = self.JUMP_HEIGHT
             self.air_time = 5 # set to trigger jump animation (thresholf for which is 4)

@@ -10,7 +10,7 @@ class MainMenu:
         self.screen = pygame.display.set_mode((1280, 960))
         self.display = pygame.Surface((240, 320))
 
-        pygame.display.set_caption("Mini Jam - Nocturne")
+        pygame.display.set_caption("Bloodgems")
         self.logo_img = load_image('my_art/ui/logo_sprite.png')
 
         self.clock = pygame.time.Clock()
@@ -104,7 +104,7 @@ class WinScreen:
         self.display = pygame.Surface((240, 320))
         self.mode = mode # valid modes: "win" / "lose"
 
-        pygame.display.set_caption("Mini Jam - Nocturne")
+        pygame.display.set_caption("Bloodgems")
 
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
@@ -199,6 +199,6 @@ class WinScreen:
             self.screen.blit(scaled_display, ((self.screen.get_width() - self.scaled_width) // 2, 0))  
             pygame.display.flip()
             self.clock.tick(60)
-            
+
 # MainMenu().run()
 # WinScreen(mode="lose").run()

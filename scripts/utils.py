@@ -1,31 +1,36 @@
 import os
+import sys
 import pygame
 
-BASE_IMG_PATH = "data/images/"
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
 
-COLORS = {
-    'deep_black': '#1D1616',
-    'red': '#8E1616',
-    'pale_red': '#D84040',
-    'off_white': '#EEEEEE'
-}
+    return os.path.join(base_path, relative_path)
 
-# COLORS = {
-#     'deep_black': '#151515',
-#     'cherry': '#A91D3A',
-#     'strawberry': '#C73659',
-#     'off_white': '#EEEEEE'
-# }
+
+BASE_IMG_PATH = resource_path("data/images")
+
 
 def load_image(path, colorkey="black"):
-    img = pygame.image.load(BASE_IMG_PATH + path).convert()
+    img = pygame.image.load(
+        os.path.join(BASE_IMG_PATH, path)
+    ).convert()
+
     img.set_colorkey(colorkey) # automatically key out the black
     return img
 
 def load_images(path):
     images=[]
-    for img_name in sorted(os.listdir(BASE_IMG_PATH + path)):
-        images.append(load_image(path + '/' + img_name))
+    
+    directory = os.path.join(BASE_IMG_PATH, path)
+
+    for img_name in sorted(os.listdir(directory)):
+        images.append(
+            load_image(os.path.join(path, img_name))
+        )
         
     return images
 
