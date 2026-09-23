@@ -173,7 +173,8 @@ class Player(PhysicsEntity):
             self.jumps -= 1
             self.velocity[1] = self.JUMP_HEIGHT
             self.air_time = 5 # set to trigger jump animation (thresholf for which is 4)
-            return
+            return True
+        return False
 
     def release_jump(self):
         # If still rising, then do jump cut

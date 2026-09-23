@@ -172,6 +172,14 @@ class Tilemap:
             self.platforms[y] = {'p_type': platform_type, 'has_ruby': False, 'has_enemy': False}
 
 
+    def add_platform(self, platform):
+        """Stamp a streamed levelgen.Platform (and its gems) into the map."""
+        for x, y in platform.tiles():
+            self.tilemap[str(x) + ';' + str(y)] = {'type': 'stone', 'variant': 1, 'pos': [x, y]}
+        self.platforms[platform.y] = {'p_type': platform.pattern, 'has_ruby': bool(platform.gems), 'has_enemy': False}
+        for gem in platform.gems:
+            self.game.rubies.append(Ruby(self.game, (gem.x, gem.y), gid=gem.gid))
+
     def get_platform_height(self, last_y=17):
         # print("Spawning NEXT platform at y =", y)
         return last_y - random.randint(2, MAX_HEIGHT_FROM_PLAYER + 1)
@@ -194,8 +202,9 @@ class Tilemap:
 
 
 class Ruby():
-    def __init__(self, game, pos, size=16):
+    def __init__(self, game, pos, size=16, gid=None):
         self.game = game
+        self.gid = gid # levelgen gem id, used by telemetry
         self.pos = pos
         self.size = size
         self.rect = pygame.Rect((self.pos[0], self.pos[1]), (self.size, self.size))
